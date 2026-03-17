@@ -20,7 +20,12 @@ export default function Index() {
     status: "all",
     collision: "all",
   });
-
+useEffect(() => {
+  getSubmissions().then((res) => {
+    console.log("DATA FROM API:", res);
+    if (res.data) setSubmissions(res.data);
+  });
+}, []);
   useEffect(() => {
     getSubmissions().then((res) => {
       if (res.data) setSubmissions(res.data);
