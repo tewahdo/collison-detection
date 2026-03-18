@@ -151,6 +151,148 @@
 //   return { success: true };
 // }
 
+// import { supabase } from "@/integrations/supabase/client";
+// import type {
+//   Submission,
+//   SubmissionFormData,
+//   ApiResponse,
+//   SubmissionStatus,
+// } from "@/types/submission";
+
+// /**
+//  * Convert DB row → frontend model
+//  */
+// function mapRow(row: any): Submission {
+//   return {
+//     id: row.id,
+//     sectorName: row.sector_name,
+//     sectorType: row.sector_type,
+
+//     // ✅ convert lat/lng → coordinates array
+//     coordinates:
+//       row.latitude && row.longitude
+//         ? [{ lat: row.latitude, lng: row.longitude }]
+//         : [],
+
+//     metadata: row.metadata ?? {},
+//     status: row.status,
+//     hasCollision: row.has_collision,
+//     collisionDetails: row.collision_details ?? undefined,
+//     submittedAt: row.submitted_at,
+//     updatedAt: row.updated_at,
+//     managerMessage: row.manager_message ?? undefined,
+//   };
+// }
+
+// /**
+//  * CREATE submission
+//  */
+// export async function submitSector(
+//   data: SubmissionFormData,
+// ): Promise<ApiResponse<Submission>> {
+//   try {
+//     const first = data.coordinates?.[0];
+
+//     if (!first) {
+//       return { success: false, error: "No location selected" };
+//     }
+
+//     // ✅ 1. Check collision
+//     const { data: collisionData, error: collisionError } = await supabase.rpc(
+//       "check_collision",
+//       {
+//         lat: first.lat,
+//         lon: first.lng,
+//       },
+//     );
+
+//     if (collisionError) {
+//       console.error(collisionError);
+//       return { success: false, error: collisionError.message };
+//     }
+
+//     const hasCollision = collisionData ?? false;
+
+//     // ✅ 2. Insert
+
+//     const { data: row, error } = await supabase
+//       .from("submissions")
+//       .insert({
+//         sectorname: data.sectorName,
+//         sectortype: data.sectorType,
+//         latitude: first.lat,
+//         longitude: first.lng,
+//         metadata: data.metadata ?? {},
+//         status: "pending",
+//         has_collision: hasCollision,
+//       })
+
+//       .select()
+//       .single();
+
+//     if (error || !row) {
+//       console.error(error);
+//       return { success: false, error: error?.message };
+//     }
+
+//     return { success: true, data: mapRow(row) };
+//   } catch (err) {
+//     console.error(err);
+//     return { success: false, error: "Unexpected error" };
+//   }
+// }
+
+// /**
+//  * GET submissions
+//  */
+// export async function getSubmissions(): Promise<ApiResponse<Submission[]>> {
+//   const { data, error } = await supabase
+//     .from("submissions")
+//     .select("*")
+//     .order("submitted_at", { ascending: false });
+
+//   if (error) {
+//     console.error(error);
+//     return { success: false, error: error.message };
+//   }
+
+//   return {
+//     success: true,
+//     data: (data ?? []).map(mapRow),
+//   };
+// }
+
+// /**
+//  * UPDATE status
+//  */
+// export async function updateSubmissionStatus(
+//   id: string,
+//   status: SubmissionStatus,
+//   message?: string,
+// ): Promise<ApiResponse<Submission>> {
+//   const updateData: any = { status };
+//   if (message) updateData.manager_message = message;
+
+//   const { data, error } = await supabase
+//     .from("submissions")
+//     .update(updateData)
+//     .eq("id", id)
+//     .select()
+//     .single();
+
+//   if (error || !data) {
+//     return { success: false, error: error?.message };
+//   }
+
+//   return { success: true, data: mapRow(data) };
+// }
+// export async function notifySector(id: string) {
+//   console.log("Notify manager for submission:", id);
+
+//   // later you can connect real notification system
+//   return { success: true };
+// }
+
 import { supabase } from "@/integrations/supabase/client";
 import type {
   Submission,
@@ -159,34 +301,23 @@ import type {
   SubmissionStatus,
 } from "@/types/submission";
 
-/**
- * Convert DB row → frontend model
- */
 function mapRow(row: any): Submission {
   return {
     id: row.id,
     sectorName: row.sector_name,
     sectorType: row.sector_type,
-
-    // ✅ convert lat/lng → coordinates array
     coordinates:
       row.latitude && row.longitude
         ? [{ lat: row.latitude, lng: row.longitude }]
         : [],
-
     metadata: row.metadata ?? {},
     status: row.status,
     hasCollision: row.has_collision,
-    collisionDetails: row.collision_details ?? undefined,
     submittedAt: row.submitted_at,
     updatedAt: row.updated_at,
-    managerMessage: row.manager_message ?? undefined,
   };
 }
 
-/**
- * CREATE submission
- */
 export async function submitSector(
   data: SubmissionFormData,
 ): Promise<ApiResponse<Submission>> {
@@ -197,7 +328,7 @@ export async function submitSector(
       return { success: false, error: "No location selected" };
     }
 
-    // ✅ 1. Check collision
+    // 🔥 collision check
     const { data: collisionData, error: collisionError } = await supabase.rpc(
       "check_collision",
       {
@@ -207,54 +338,33 @@ export async function submitSector(
     );
 
     if (collisionError) {
-      console.error(collisionError);
       return { success: false, error: collisionError.message };
     }
 
-    const hasCollision = collisionData ?? false;
-
-    // ✅ 2. Insert
-    // const { data: row, error } = await supabase
-    //   .from("submissions")
-    //   .insert({
-    //     sector_name: data.sectorName,
-    //     sector_type: data.sectorType,
-    //     latitude: first.lat,
-    //     longitude: first.lng,
-    //     metadata: data.metadata ?? {},
-    //     status: "pending",
-    //     has_collision: hasCollision,
-    //   })
     const { data: row, error } = await supabase
       .from("submissions")
       .insert({
-        sectorname: data.sectorName,
-        sectortype: data.sectorType,
+        sector_name: data.sector_name, // ✅ FIXED
+        sector_type: data.sector_type, // ✅ FIXED
         latitude: first.lat,
         longitude: first.lng,
         metadata: data.metadata ?? {},
         status: "pending",
-        has_collision: hasCollision,
+        has_collision: collisionData ?? false,
       })
-
       .select()
       .single();
 
     if (error || !row) {
-      console.error(error);
       return { success: false, error: error?.message };
     }
 
     return { success: true, data: mapRow(row) };
-  } catch (err) {
-    console.error(err);
+  } catch {
     return { success: false, error: "Unexpected error" };
   }
 }
 
-/**
- * GET submissions
- */
 export async function getSubmissions(): Promise<ApiResponse<Submission[]>> {
   const { data, error } = await supabase
     .from("submissions")
@@ -262,7 +372,6 @@ export async function getSubmissions(): Promise<ApiResponse<Submission[]>> {
     .order("submitted_at", { ascending: false });
 
   if (error) {
-    console.error(error);
     return { success: false, error: error.message };
   }
 
@@ -272,20 +381,13 @@ export async function getSubmissions(): Promise<ApiResponse<Submission[]>> {
   };
 }
 
-/**
- * UPDATE status
- */
 export async function updateSubmissionStatus(
   id: string,
   status: SubmissionStatus,
-  message?: string,
 ): Promise<ApiResponse<Submission>> {
-  const updateData: any = { status };
-  if (message) updateData.manager_message = message;
-
   const { data, error } = await supabase
     .from("submissions")
-    .update(updateData)
+    .update({ status })
     .eq("id", id)
     .select()
     .single();
@@ -295,10 +397,9 @@ export async function updateSubmissionStatus(
   }
 
   return { success: true, data: mapRow(data) };
-}
-export async function notifySector(id: string) {
+} export async function notifySector(id: string) {
   console.log("Notify manager for submission:", id);
 
-  // later you can connect real notification system
-  return { success: true };
-}
+//   // later you can connect real notification system
+   return { success: true };
+ }
