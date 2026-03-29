@@ -42,8 +42,7 @@
 
 // export default App;
 
-
-
+import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -57,7 +56,7 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Login from "./pages/Login";
 import Index from "./pages/index";
-import Manager from "./pages/Manager";
+// import Manager from "./pages/Manager";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -104,14 +103,14 @@ const App = () => (
                     </ProtectedRoute>
                   }
                 />
-                <Route
+                {/* <Route
                   path="/manager"
                   element={
                     <ProtectedRoute requiredRole="manager">
                       <Manager />
                     </ProtectedRoute>
                   }
-                />
+                /> */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AppLayout>
