@@ -64,10 +64,19 @@
 //   );
 // }
 
+
+
+
+
+
+
+
+
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import { useState } from "react";
 import L from "leaflet";
 import { supabase } from "@/integrations/supabase/client";
+import { getRecommendedLocation } from "@/services/api";
 
 // fix icon
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -144,3 +153,14 @@ const handleMapClick = async (lat, lng) => {
     }
   }
 };
+
+
+
+
+
+
+
+
+
+
+

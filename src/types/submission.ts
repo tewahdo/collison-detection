@@ -100,9 +100,76 @@
 
 
 
-// src/types/submission.ts
 
-// ✅ 9 SECTORS (STRICT + SAFE)
+
+
+
+
+// // src/types/submission.ts
+
+// // ✅ 9 SECTORS (STRICT + SAFE)
+// export const SECTOR_TYPES = [
+//   "airport",
+//   "roads",
+//   "electric_towers",
+//   "power_plants",
+//   "transformers",
+//   "substations",
+//   "railway_lines",
+//   "telecom_sites",
+//   "transmission_lines",
+// ] as const;
+
+// export type SectorType = (typeof SECTOR_TYPES)[number];
+
+// // ✅ Submission Status
+// export type SubmissionStatus = "pending" | "approved" | "rejected";
+
+// // ✅ Coordinates type (NEW - cleaner)
+// export interface Coordinate {
+//   lat: number;
+//   lng: number;
+// }
+
+// // ✅ Form data
+// export interface SubmissionFormData {
+//   sectorName: string;
+//   sectorType: SectorType;
+//   coordinates: Coordinate[];
+//   metadata?: any;
+// }
+
+// // ✅ DB response
+// export interface Submission {
+//   id: string;
+//   sectorName: string;
+//   sectorType: SectorType;
+//   coordinates: Coordinate[];
+//   metadata: any;
+//   status: SubmissionStatus;
+//   hasCollision: boolean;
+//   submittedAt: string;
+//   updatedAt: string;
+// }
+
+// // ✅ API response
+// export interface ApiResponse<T> {
+//   success: boolean;
+//   data?: T;
+//   error?: string;
+// }
+
+
+
+
+
+
+
+
+
+
+
+// ✅ 9 SECTORS
 export const SECTOR_TYPES = [
   "airport",
   "roads",
@@ -117,16 +184,16 @@ export const SECTOR_TYPES = [
 
 export type SectorType = (typeof SECTOR_TYPES)[number];
 
-// ✅ Submission Status
+// ✅ Status
 export type SubmissionStatus = "pending" | "approved" | "rejected";
 
-// ✅ Coordinates type (NEW - cleaner)
+// ✅ Coordinates
 export interface Coordinate {
   lat: number;
   lng: number;
 }
 
-// ✅ Form data
+// ✅ Form Data
 export interface SubmissionFormData {
   sectorName: string;
   sectorType: SectorType;
@@ -134,7 +201,7 @@ export interface SubmissionFormData {
   metadata?: any;
 }
 
-// ✅ DB response
+// ✅ DB Model
 export interface Submission {
   id: string;
   sectorName: string;
@@ -143,11 +210,12 @@ export interface Submission {
   metadata: any;
   status: SubmissionStatus;
   hasCollision: boolean;
+  collisionDetails?: string[]; // ✅ NEW
   submittedAt: string;
   updatedAt: string;
 }
 
-// ✅ API response
+// ✅ API Response
 export interface ApiResponse<T> {
   success: boolean;
   data?: T;

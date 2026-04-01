@@ -164,6 +164,9 @@
 //   return { success: true };
 // }
 
+
+
+
 import { supabase } from "@/integrations/supabase/client";
 
 import type {
@@ -357,3 +360,20 @@ export async function updateSubmissionStatus(
 //     collidedWith: null,
 //   };
 // }
+
+export async function getRecommendedLocation(lat: number, lng: number) {
+  const { data, error } = await supabase.rpc("recommend_location", {
+    lat,
+    lon: lng,
+  });
+
+  if (error) {
+    console.error("AI error:", error);
+    return null;
+  }
+
+  return data?.[0] || null;
+}
+
+
+
