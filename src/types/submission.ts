@@ -211,6 +211,7 @@ export interface Submission {
   status: SubmissionStatus;
   hasCollision: boolean;
   collisionDetails?: string[]; // ✅ NEW
+  managerMessage?: string;
   submittedAt: string;
   updatedAt: string;
 }
