@@ -164,18 +164,6 @@
 //   return { success: true };
 // }
 
-
-
-
-
-
-
-
-
-
-
-
-
 // import { supabase } from "@/integrations/supabase/client";
 
 // import type {
@@ -280,7 +268,6 @@
 //   }
 // }
 
-
 // // -----------------------------
 // // GET SUBMISSIONS
 // // -----------------------------
@@ -342,8 +329,6 @@
 //   }
 // }
 
-
-
 // export async function getRecommendedLocation(lat: number, lng: number) {
 //   const { data, error } = await supabase.rpc("recommend_location", {
 //     lat,
@@ -358,7 +343,6 @@
 //   return data?.[0] || null;
 // }
 
-
 // async function checkCollision(lat: number, lng: number) {
 //   const { data, error } = await supabase.rpc("check_collision", {
 //     lat,
@@ -369,6 +353,16 @@
 
 //   return data?.[0] || { hasCollision: false };
 // }
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -475,6 +469,29 @@ export async function submitSector(data: any) {
 // -----------------------------
 // GET USER SUBMISSIONS (USER ONLY)
 // -----------------------------
+// export async function getUserSubmissions() {
+//   const user = (await supabase.auth.getUser()).data.user;
+
+//   if (!user) {
+//     return { success: false, data: [] };
+//   }
+
+//   const { data, error } = await supabase
+//     .from("submissions")
+//     .select("*")
+//     .eq("user_id", user.id)
+//     .order("submitted_at", { ascending: false });
+
+//   if (error) {
+//     console.error("USER FETCH ERROR:", error);
+//     return { success: false, data: [] };
+//   }
+
+//   return {
+//     success: true,
+//     data: (data || []).map(mapRow),
+//   };
+// }
 export async function getUserSubmissions() {
   const user = (await supabase.auth.getUser()).data.user;
 
@@ -485,20 +502,18 @@ export async function getUserSubmissions() {
   const { data, error } = await supabase
     .from("submissions")
     .select("*")
-    .eq("user_id", user.id)
+    .eq("user_id", user.id) // 🔥 THIS IS THE FIX
     .order("submitted_at", { ascending: false });
 
   if (error) {
-    console.error("USER FETCH ERROR:", error);
     return { success: false, data: [] };
   }
 
   return {
     success: true,
-    data: (data || []).map(mapRow),
+    data,
   };
 }
-
 // -----------------------------
 // GET ALL SUBMISSIONS (MANAGER)
 // -----------------------------
@@ -541,40 +556,92 @@ export async function getRecommendedLocation(lat: number, lng: number) {
 // -----------------------------
 // UPDATE STATUS (MANAGER ACTION)
 // -----------------------------
-export async function updateSubmissionStatus(
-  id: string,
-  status: "approved" | "rejected",
-  message?: string
-): Promise<ApiResponse<Submission>> {
-  try {
-    const { data, error } = await supabase
-      .from("submissions")
-      .update({
-        status,
-        metadata: message ? { message } : {},
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id)
-      .select()
-      .single();
+// export async function updateSubmissionStatus(
+//   id: string,
+//   status: "approved" | "rejected",
+//   message?: string,
+// ): Promise<ApiResponse<Submission>> {
+//   try {
+//     const { data, error } = await supabase
+//       .from("submissions")
+//       .update({
+//         status,
+//         metadata: message ? { message } : {},
+//         updated_at: new Date().toISOString(),
+//       })
+//       .eq("id", id)
+//       .select()
+//       .single();
 
-    if (error) {
-      console.error("UPDATE ERROR:", error);
-      return { success: false, error: error.message };
-    }
+//     if (error) {
+//       console.error("UPDATE ERROR:", error);
+//       return { success: false, error: error.message };
+//     }
 
-    return {
-      success: true,
-      data: mapRow(data),
-    };
-  } catch (err: any) {
-    return {
-      success: false,
-      error: err.message || "Unexpected error",
-    };
+//     return {
+//       success: true,
+//       data: mapRow(data),
+//     };
+//   } catch (err: any) {
+//     return {
+//       success: false,
+//       error: err.message || "Unexpected error",
+//     };
+//   }
+// }
+// export async function updateSubmissionStatus(id, status, message) {
+//   const { data, error } = await supabase
+//     .from("submissions")
+//     .update({
+//       status,
+//       managerMessage: message,
+//     })
+//     .eq("id", id)
+//     .select()
+//     .single();
+
+//   if (error) throw error;
+
+//   return { success: true, data };
+// }
+export async function updateSubmissionStatus(id, status, message) {
+  const { data, error } = await supabase
+    .from("submissions")
+    .update({
+      status,
+      managerMessage: message,
+    })
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  // 🔥 GET USER EMAIL
+  const { data: user } = await supabase
+    .from("profiles")
+    .select("email")
+    .eq("id", data.user_id)
+    .single();
+
+  if (user?.email) {
+    await fetch(
+      "https://nyetklvkvgxftdhejigs.supabase.co/functions/v1/send-email",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: user.email,
+          message: `Your submission is ${status.toUpperCase()}. Message: ${message}`,
+        }),
+      },
+    );
   }
-}
 
+  return { success: true, data };
+}
 // -----------------------------
 // NOTIFY SECTOR (OPTIONAL)
 // -----------------------------
@@ -588,4 +655,46 @@ export async function notifySector(id: string, message?: string) {
     console.error("NOTIFY ERROR:", err);
     return { success: false };
   }
+}
+
+// export async function getGapLocation(
+//   lat: number,
+//   lng: number,
+//   sectorType: string,
+// ) {
+//   const { data, error } = await supabase.rpc("gap_analysis", {
+//     lat,
+//     lon: lng,
+//     sector: sectorType,
+//   });
+
+//   if (error) {
+//     console.error("GAP ERROR:", error);
+//     return null;
+//   }
+
+//   return data?.[0];
+// }
+
+export async function getGapLocation(lat, lng, sectorType) {
+  const { data } = await supabase.rpc("gap_analysis", {
+    lat,
+    lng,
+    sector_type: sectorType,
+  });
+
+  // if (!data || data.length === 0) {
+  //   return {
+  //     new_lat: lat + 0.01,
+  //     new_lon: lng + 0.01,
+  //   };
+  // }
+  if (!data?.length) {
+  return {
+    new_lat: lat + (Math.random() * 0.02),
+    new_lon: lng + (Math.random() * 0.02),
+  };
+}
+
+  return data[0];
 }

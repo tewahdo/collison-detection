@@ -179,7 +179,7 @@ import { Shield } from "lucide-react";
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { t } = useLanguage();
   const { user, userRole } = useAuth();
-
+const isManager = userRole === "manager" || userRole === "admin";
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">

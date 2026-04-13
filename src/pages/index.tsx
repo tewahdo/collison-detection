@@ -603,7 +603,7 @@ export default function Index() {
         )}
 
         {/* AI Recommendation */}
-        <AILocationRecommendation submissions={submissions} />
+        {/* <AILocationRecommendation submissions={submissions} /> */}
 
         {/* Data views */}
         <Tabs defaultValue="map">
