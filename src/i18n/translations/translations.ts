@@ -1,8 +1,3 @@
-
-
-
-
-
 export type Language = "en" | "am" | "om";
 
 export const languageNames: Record<Language, string> = {
@@ -22,6 +17,7 @@ export const translations: Record<Language, Record<string, string>> = {
     "nav.login": "Sign In",
     "nav.logout": "Sign Out",
     "nav.signup": "Create Account",
+    "nav.help": "Help Center",
 
     // Homepage
     "home.title":
@@ -419,6 +415,7 @@ export const translations: Record<Language, Record<string, string>> = {
     "nav.login": "ይግቡ",
     "nav.logout": "ውጣ",
     "nav.signup": "መለያ ይፍጠሩ",
+    "nav.help": "የእገዛ ማዕከል",
     "home.title": "የመሠረተ ልማት ግጭት ማወቂያ እና ቅንጅት ሥርዓት",
     "home.subtitle":
       "በላቀ የPostGIS ቦታ ትንተና፣ በቅጽበት ግጭት ማወቂያ እና በ AI ተኮር የቦታ ምክረ ሐሳቦች አማካኝነት ደህንና የተቀናጀ የመሠረተ ልማት ልማትን ማረጋገጥ።",
@@ -719,6 +716,7 @@ export const translations: Record<Language, Record<string, string>> = {
     "nav.login": "Seeni",
     "nav.logout": "Ba'i",
     "nav.signup": "Herrega Uumi",
+    "nav.help": "Giddugala Gargaarsaa",
     "home.title":
       "Sirna Adda Baasuu fi Walitti Qindeessuu Walitti Bu'iinsa Bu'uuraalee Misoomaa",
     "home.subtitle":

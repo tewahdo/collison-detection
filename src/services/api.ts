@@ -534,9 +534,49 @@ export async function getSubmissions() {
   };
 }
 
+// export async function getSubmissions() {
+//   const user = (await supabase.auth.getUser()).data.user;
+
+//   if (!user) {
+//     return { success: false, data: [] };
+//   }
+
+//   // 🔐 ONLY MANAGER SHOULD SEE ALL DATA
+//   const { data: roleData } = await supabase
+//     .from("profiles")
+//     .select("role")
+//     .eq("id", user.id)
+//     .single();
+
+//   const isManager = roleData?.role === "manager";
+
+//   let query = supabase.from("submissions").select("*");
+
+//   // 👇 NORMAL USER → only own data
+//   if (!isManager) {
+//     query = query.eq("user_id", user.id);
+//   }
+
+//   const { data, error } = await query.order("submitted_at", {
+//     ascending: false,
+//   });
+
+//   if (error) {
+//     console.error("FETCH ERROR:", error);
+//     return { success: false, data: [] };
+//   }
+
+//   return {
+//     success: true,
+//     data: (data || []).map(mapRow),
+//   };
+// }
+
+
 // -----------------------------
 // RECOMMENDED LOCATION (AI / RPC)
 // -----------------------------
+
 export async function getRecommendedLocation(lat: number, lng: number) {
   const { data, error } = await supabase.rpc("recommend_location", {
     lat,
@@ -556,39 +596,7 @@ export async function getRecommendedLocation(lat: number, lng: number) {
 // -----------------------------
 // UPDATE STATUS (MANAGER ACTION)
 // -----------------------------
-// export async function updateSubmissionStatus(
-//   id: string,
-//   status: "approved" | "rejected",
-//   message?: string,
-// ): Promise<ApiResponse<Submission>> {
-//   try {
-//     const { data, error } = await supabase
-//       .from("submissions")
-//       .update({
-//         status,
-//         metadata: message ? { message } : {},
-//         updated_at: new Date().toISOString(),
-//       })
-//       .eq("id", id)
-//       .select()
-//       .single();
 
-//     if (error) {
-//       console.error("UPDATE ERROR:", error);
-//       return { success: false, error: error.message };
-//     }
-
-//     return {
-//       success: true,
-//       data: mapRow(data),
-//     };
-//   } catch (err: any) {
-//     return {
-//       success: false,
-//       error: err.message || "Unexpected error",
-//     };
-//   }
-// }
 // export async function updateSubmissionStatus(id, status, message) {
 //   const { data, error } = await supabase
 //     .from("submissions")
@@ -602,46 +610,76 @@ export async function getRecommendedLocation(lat: number, lng: number) {
 
 //   if (error) throw error;
 
+//   // 🔥 GET USER EMAIL
+//   const { data: user } = await supabase
+//     .from("profiles")
+//     .select("email")
+//     .eq("id", data.user_id)
+//     .single();
+
+//   if (user?.email) {
+//     await fetch(
+//       "https://nyetklvkvgxftdhejigs.supabase.co/functions/v1/send-email",
+//       {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//         body: JSON.stringify({
+//           email: user.email,
+//           message: `Your submission is ${status.toUpperCase()}. Message: ${message}`,
+//         }),
+//       },
+//     );
+//   }
+
 //   return { success: true, data };
-// }
-export async function updateSubmissionStatus(id, status, message) {
-  const { data, error } = await supabase
-    .from("submissions")
-    .update({
-      status,
-      managerMessage: message,
-    })
-    .eq("id", id)
-    .select()
-    .single();
+// }export async function updateSubmissionStatus(id, status, message) {
+  // 1. Update DB
+  export async function updateSubmissionStatus(id, status, message) {
+    const { data, error } = await supabase
+      .from("submissions")
+      .update({
+        status,
+        managerMessage: message,
+      })
+      .eq("id", id)
+      .select()
+      .single();
 
-  if (error) throw error;
+    if (error) throw error;
 
-  // 🔥 GET USER EMAIL
-  const { data: user } = await supabase
-    .from("profiles")
-    .select("email")
-    .eq("id", data.user_id)
-    .single();
+    // 🔥 GET USER EMAIL FIRST
+    const { data: sub } = await supabase
+      .from("submissions")
+      .select("user_id")
+      .eq("id", id)
+      .single();
 
-  if (user?.email) {
-    await fetch(
-      "https://nyetklvkvgxftdhejigs.supabase.co/functions/v1/send-email",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("email")
+      .eq("id", sub.user_id)
+      .single();
+
+    if (profile?.email) {
+      await fetch(
+        "https://nyetklvkvgxftdhejigs.supabase.co/functions/v1/send-email",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: profile.email,
+            message: `Your submission is now ${status}`,
+          }),
         },
-        body: JSON.stringify({
-          email: user.email,
-          message: `Your submission is ${status.toUpperCase()}. Message: ${message}`,
-        }),
-      },
-    );
-  }
+      );
+    }
 
-  return { success: true, data };
-}
+    return { success: true, data };
+  }
 // -----------------------------
 // NOTIFY SECTOR (OPTIONAL)
 // -----------------------------

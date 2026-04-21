@@ -168,18 +168,85 @@
 
 
 
+
+
+
+
+
+// import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+// import { AppSidebar } from "@/components/AppSidebar";
+// import LanguageSwitcher from "@/components/LanguageSwitcher";
+// import { useLanguage } from "@/i18n/LanguageContext";
+// import { useAuth } from "@/contexts/AuthContext";
+// import { Badge } from "@/components/ui/badge";
+// import { Shield } from "lucide-react";
+
+// export default function AppLayout({ children }: { children: React.ReactNode }) {
+//   const { t } = useLanguage();
+//   const { user, userRole } = useAuth();
+// const isManager = userRole === "manager" || userRole === "admin";
+//   return (
+//     <SidebarProvider>
+//       <div className="min-h-screen flex w-full">
+//         <AppSidebar />
+//         <div className="flex-1 flex flex-col min-w-0">
+//           <header className="h-14 flex items-center justify-between border-b border-border bg-card/90 backdrop-blur-sm sticky top-0 z-50 px-4">
+//             <div className="flex items-center gap-3">
+//               <SidebarTrigger />
+//               <div className="hidden md:flex items-center gap-2">
+//                 <Shield className="h-4 w-4 text-primary" />
+//                 <span className="text-sm font-semibold text-foreground">
+//                   {t("common.appname")}
+//                 </span>
+//                 <span className="text-xs text-muted-foreground">|</span>
+//                 <span className="text-xs text-muted-foreground">
+//                   {t("common.tagline")}
+//                 </span>
+//               </div>
+//             </div>
+//             <div className="flex items-center gap-3">
+//               {user && userRole && (
+//                 <Badge
+//                   variant="outline"
+//                   className="text-[10px] uppercase tracking-wider font-semibold"
+//                 >
+//                   {userRole === "admin"
+//                     ? "Admin"
+//                     : userRole === "manager"
+//                       ? t("auth.role.manager")
+//                       : t("auth.role.sector")}
+//                 </Badge>
+//               )}
+//               <LanguageSwitcher />
+//             </div>
+//           </header>
+//           <main className="flex-1">{children}</main>
+//         </div>
+//       </div>
+//     </SidebarProvider>
+//   );
+// }
+
+
+
+
+
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import ThemeToggle from "@/components/ThemeToggle";
+import NotificationBell from "@/components/NotificationBell";
+import FeedbackDialog from "@/components/FeedbackDialog";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
-import { Shield } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Shield, MessageCircle } from "lucide-react";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const { t } = useLanguage();
   const { user, userRole } = useAuth();
-const isManager = userRole === "manager" || userRole === "admin";
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
@@ -199,11 +266,11 @@ const isManager = userRole === "manager" || userRole === "admin";
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5">
               {user && userRole && (
                 <Badge
                   variant="outline"
-                  className="text-[10px] uppercase tracking-wider font-semibold"
+                  className="hidden sm:inline-flex text-[10px] uppercase tracking-wider font-semibold"
                 >
                   {userRole === "admin"
                     ? "Admin"
@@ -212,6 +279,20 @@ const isManager = userRole === "manager" || userRole === "admin";
                       : t("auth.role.sector")}
                 </Badge>
               )}
+              <FeedbackDialog
+                trigger={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    aria-label="Send feedback"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                  </Button>
+                }
+              />
+              <NotificationBell />
+              <ThemeToggle />
               <LanguageSwitcher />
             </div>
           </header>
