@@ -365,7 +365,7 @@ export default function ManagerNotification({
       );
 
       if (!res.success) {
-        toast.error(res.error || "Failed to update status");
+        toast.error(res.success || "Failed to update status");
         return;
       }
 
